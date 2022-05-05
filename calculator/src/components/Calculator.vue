@@ -7,37 +7,41 @@
           <tbody>
             <tr class="output">
               <td colspan="4">
-              {{ output || 0 }}
+                {{ output || 0 }}
               </td>
             </tr>
             <tr>
               <td v-on:click="clearField">C</td>
               <td v-on:click="setNegativeOrPositive">+/-</td>
               <td v-on:click="calculatePercentage">%</td>
-              <td class="lastcolumn"><i class="fa-solid fa-divide"></i></td>
+              <td class="lastcolumn" @click="processOutput('divide')">
+                <i class="fa-solid fa-divide"></i>
+              </td>
             </tr>
             <tr>
-              <td>7</td>
-              <td>8</td>
-              <td>9</td>
-              <td class="lastcolumn"><i class="fa-solid fa-xmark"></i></td>
+              <td v-on:click="getNumber('7')">7</td>
+              <td v-on:click="getNumber('8')">8</td>
+              <td v-on:click="getNumber('9')">9</td>
+              <td class="lastcolumn" @click="processOutput('multiply')">
+                <i class="fa-solid fa-xmark"></i>
+              </td>
             </tr>
             <tr>
-              <td>4</td>
-              <td>5</td>
-              <td>6</td>
-              <td class="lastcolumn">-</td>
+              <td v-on:click="getNumber('4')">4</td>
+              <td v-on:click="getNumber('5')">5</td>
+              <td v-on:click="getNumber('6')">6</td>
+              <td class="lastcolumn" @click="processOutput('subtract')">-</td>
             </tr>
             <tr>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td class="lastcolumn">+</td>
+              <td v-on:click="getNumber('1')">1</td>
+              <td v-on:click="getNumber('2')">2</td>
+              <td v-on:click="getNumber('3')">3</td>
+              <td class="lastcolumn" @click="processOutput('add')">+</td>
             </tr>
             <tr>
-              <td colspan="2">0</td>
-              <td>.</td>
-              <td class="lastcolumn">=</td>
+              <td colspan="2" v-on:click="getNumber('0')">0</td>
+              <td v-on:click="getDot()">.</td>
+              <td class="lastcolumn" @click="updateOutput">=</td>
             </tr>
           </tbody>
         </table>
@@ -52,22 +56,66 @@ export default {
   props: {
     msg: String,
   },
+
   data() {
     return {
-      output: '100'
-    }
+      output: "",
+      previousValue: null,
+      operationFired: false,
+    };
   },
+
   methods: {
-   clearField() {
-     this.output = '';
-   },
-   setNegativeOrPositive() {
-     this.output = this.output[0] === '-' ? this.output.slice(1) : `-${this.output}`;
-   },
-   calculatePercentage() {
-     this.output = parseFloat(this.output)/100;
-   }
-  }
+    clearField() {
+      this.output = "";
+    },
+    setNegativeOrPositive() {
+      this.output =
+        this.output[0] === "-" ? this.output.slice(1) : `-${this.output}`;
+    },
+    calculatePercentage() {
+      this.output = parseFloat(this.output) / 100;
+    },
+    getNumber(number) {
+      if (this.operationFired) {
+        (this.output = ""), (this.operationFired = false);
+      }
+      this.output = `${this.output}${number}`;
+    },
+    getDot() {
+      if (this.output.indexOf(".") === -1) {
+        this.output = this.output + ".";
+      }
+    },
+
+    processOutput(string) {
+
+      if (string == "add") {
+        this.operation = (a, b) => {
+          return parseFloat(a) + parseFloat(b);
+        }
+      } else if(string == 'subtract') {
+        this.operation = (a, b) => {
+          return parseFloat(a) - parseFloat(b);
+        }
+      } else if(string == 'multiply') {
+        this.operation = (a, b) => {
+          return parseFloat(a) * parseFloat(b);
+        }
+      } else if(string == 'divide') {
+        this.operation = (a, b) => {
+          return parseFloat(a) / parseFloat(b);
+        }
+      }
+      
+      this.previousValue = this.output;
+      this.operationFired = true;
+    },
+    updateOutput() {
+      this.output = `${this.operation(this.previousValue, this.output)}`;
+      this.previousValue = null;
+    },
+  },
 };
 </script>
 
@@ -92,7 +140,7 @@ a {
   color: #fff;
 }
 .lastcolumn {
-  background-color: orange; 
+  background-color: orange;
   color: #fff;
 }
 .lastcolumn:active {
